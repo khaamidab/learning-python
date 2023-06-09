@@ -1,7 +1,7 @@
-from flask import Flask, request, jsonify
+from flask import Blueprint, request, jsonify
 import psycopg2
 
-app = Flask(__name__)
+user_route = Blueprint('user', __name__)
 
 # Configure PostgreSQL connection
 conn = psycopg2.connect(
@@ -11,11 +11,8 @@ conn = psycopg2.connect(
     password="your_password"
 )
 
-@app.route('/')
-def hello():
-    return 'Hello, World!'
 
-@app.route('/users', methods=['POST'])
+@user_route.route('/users', methods=['POST'])
 def create_user():
     try:
         # Get the user data from the request
@@ -27,7 +24,9 @@ def create_user():
         cursor = conn.cursor()
 
         # Execute the SQL query to insert the user
-        cursor.execute("INSERT INTO users (name, email) VALUES (%s, %s)", (name, email))
+        insert_query = "INSERT INTO users (name, email) VALUES (%s, %s)"
+        cursor.execute(insert_query, (name, email))
+
         conn.commit()
 
         # Close the cursor
@@ -42,6 +41,3 @@ def create_user():
 
         # Return an error response
         return jsonify({'error': str(error)}), 400
-
-if __name__ == '__main__':
-    app.run()

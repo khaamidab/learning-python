@@ -1,0 +1,5 @@
+repos:
+  - repo: https://github.com/PyCQA/flake8
+    rev: 3.9.2  # Replace with the stable version of flake8
+    hooks:
+      - id: flake8
