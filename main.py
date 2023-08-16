@@ -1,11 +1,28 @@
-from flask import Flask
-from routes import hello_route, user_route
+from fastapi import FastAPI
+from routes.user_route import create_routes
+from services.user_service import UserService
+from repositories.user_repository import UserRepository
+from databases import Database
+import os
 
-app = Flask(__name__)
+app = FastAPI()
 
-# Register routes
-app.register_blueprint(hello_route)
-app.register_blueprint(user_route)
+# Load environment variables
+database_url = os.getenv("DATABASE_URL")
 
-if __name__ == '__main__':
-    app.run()
+# Create database connection
+database = Database(database_url)
+user_repository = UserRepository(database)
+user_service = UserService(user_repository)
+
+
+@app.on_event("startup")
+async def startup() -> None:
+    await database.connect()
+
+
+@app.on_event("shutdown")
+async def shutdown() -> None:
+    await database.disconnect()
+
+create_routes(app)
